@@ -3,8 +3,7 @@
 
 
 (defun ddg-ai (question)
-  "Ask DDG AI about something, get an answer.
-   Based on https://github.com/yurii-tov/hey"
+  "Ask DDG AI about something, get an answer"
   (let* ((question (replace-regexp-in-string "'" "" question)))
     (with-temp-buffer
       (insert (replace-regexp-in-string
