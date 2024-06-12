@@ -28,16 +28,17 @@
       (buffer-substring 1 (point-max)))))
 
 
-(defun ddg-ai-org-insert-answer ()
+(defun ddg-ai-org-insert-answer (&optional question)
   (interactive)
-  (let ((question (save-excursion
-                    (goto-char (line-beginning-position))
-                    (and (looking-at-p "\\*+ ")
-                         (forward-word)
-                         (backward-word)
-                         (buffer-substring
-                          (point)
-                          (line-end-position))))))
+  (let ((question (or question
+                      (save-excursion
+                        (goto-char (line-beginning-position))
+                        (and (looking-at-p "\\*+ ")
+                             (forward-word)
+                             (backward-word)
+                             (buffer-substring
+                              (point)
+                              (line-end-position)))))))
     (call-interactively 'org-return)
     (if question
         (progn
@@ -58,11 +59,6 @@
       (org-return))))
 
 
-(defun ddg-ai-insert-from-history ()
-  (interactive)
-  (insert (completing-read "Insert question from history: " ddg-ai-query-history)))
-
-
 (defun cleanup-ddg-ai-cache ()
   (shell-command-to-string
    (format "%s --remove-cache" ddg-ai-executable)))
@@ -74,20 +70,19 @@
   (local-set-key
    (kbd "RET")
    'ddg-ai-org-insert-answer)
-  (local-set-key
-   (kbd "M-p")
-   'ddg-ai-insert-from-history)
-  (add-hook 'kill-buffer-hook 'cleanup-ddg-ai-cache nil t)
-  (insert "# Welcome to DDG AI Chat!
-# Write your questions after * sign, then hit Enter
-# Use M-p to browse queries history\n\n"))
+  (add-hook 'kill-buffer-hook 'cleanup-ddg-ai-cache nil t))
 
 
 (defun ask-ddg-ai (question)
   (interactive (list (read-string "Ask DDG AI: " nil 'ddg-ai-query-history)))
   (let* ((n "*ddg-ai-chat*")
          (freshp (not (get-buffer n)))
-         (b (get-buffer-create n)))
+         (b (get-buffer-create n))
+         (question (concat question
+                           (when (use-region-p)
+                             (format "\n#+begin_example\n%s\n#+end_example\n"
+                                     (buffer-substring (region-beginning)
+                                                       (region-end)))))))
     (unless (member b (mapcar #'window-buffer (window-list)))
       (switch-to-buffer b))
     (with-current-buffer b
@@ -96,4 +91,4 @@
       (end-of-buffer)
       (when freshp (org-meta-return))
       (insert question)
-      (ddg-ai-org-insert-answer))))
+      (ddg-ai-org-insert-answer question))))
