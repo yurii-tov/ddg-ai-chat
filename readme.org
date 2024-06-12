@@ -1,0 +1,15 @@
+#+TITLE: DDG AI Chat client for Emacs
+* Setup
+  1. Download the repo
+     For example, to ~/.emacs.d/ddg-ai-chat/
+  2. Build the executable file
+     #+begin_example
+       cargo build --release
+     #+end_example
+  3. Add to Emacs config
+     (Example)
+     #+begin_src emacs-lisp
+       (progn (add-to-list 'exec-path "~/.emacs.d/ddg-ai-chat/target/release/")
+              (load-file "~/.emacs.d/ddg-ai-chat/ddg-ai.el")
+              (define-key search-map "a" 'ask-ddg-ai))
+     #+end_src

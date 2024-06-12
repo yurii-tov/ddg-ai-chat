@@ -1,0 +1,99 @@
+(setq ddg-ai-executable (or (executable-find "hey.exe")
+                            (error "Unable to find hey.exe")))
+
+
+(defun ddg-ai (question)
+  "Ask DDG AI about something, get an answer.
+   Based on https://github.com/yurii-tov/hey"
+  (let* ((question (replace-regexp-in-string "'" "" question)))
+    (with-temp-buffer
+      (insert (replace-regexp-in-string
+               "```\\(.+\\)"
+               "#+begin_src \\1"
+               (replace-regexp-in-string
+                ".*Contacting DuckDuckGo chat AI.*\n"
+                ""
+                (shell-command-to-string
+                 (format "%s '%s'" ddg-ai-executable question)))))
+      (beginning-of-buffer)
+      (while (search-forward "#+begin_src" nil t)
+        (let ((p (point)))
+          (search-forward "```")
+          (replace-regexp "```" "#+end_src" nil p (point) t)))
+      (beginning-of-buffer)
+      (while (search-forward "```" nil t)
+        (replace-string "```" "#+begin_example" nil nil nil t)
+        (let ((p (point)))
+          (search-forward "```")
+          (replace-string "```" "#+end_example" nil p (point) t)))
+      (buffer-substring 1 (point-max)))))
+
+
+(defun ddg-ai-org-insert-answer ()
+  (interactive)
+  (let ((question (save-excursion
+                    (goto-char (line-beginning-position))
+                    (and (looking-at-p "\\*+ ")
+                         (forward-word)
+                         (backward-word)
+                         (buffer-substring
+                          (point)
+                          (line-end-position))))))
+    (call-interactively 'org-return)
+    (if question
+        (progn
+          (add-to-history 'ddg-ai-query-history question)
+          (insert "# Generating answer...")
+          (sit-for 0.05)
+          (let ((a (ddg-ai question)))
+            (kill-whole-line)
+            (insert a))
+          (untabify 1 (point-max))
+          (indent-region 1 (point-max))
+          (whitespace-cleanup)
+          (call-interactively 'org-next-visible-heading)
+          (dotimes (i 2)
+            (call-interactively 'org-return))
+          (org-meta-return))
+      (org-return))))
+
+
+(defun ddg-ai-insert-from-history ()
+  (interactive)
+  (insert (completing-read "Insert question from history: " ddg-ai-query-history)))
+
+
+(defun cleanup-ddg-ai-cache ()
+  (message (shell-command-to-string
+            (format "%s --remove-cache" ddg-ai-executable))))
+
+
+(defun setup-ddg-ai-buffer ()
+  (org-mode)
+  (use-local-map (copy-keymap (current-local-map)))
+  (local-set-key
+   (kbd "RET")
+   'ddg-ai-org-insert-answer)
+  (local-set-key
+   (kbd "M-p")
+   'ddg-ai-insert-from-history)
+  (add-hook 'kill-buffer-hook 'cleanup-ddg-ai-cache nil t)
+  (insert "# Welcome to DDG AI Chat!
+# Write your questions after * sign, then hit Enter
+# Use M-p to browse queries history\n\n"))
+
+
+(defun ask-ddg-ai (question)
+  (interactive (list (read-string "Ask DDG AI: " nil 'ddg-ai-query-history)))
+  (let* ((n "*ddg-ai-chat*")
+         (freshp (not (get-buffer n)))
+         (b (get-buffer-create n)))
+    (unless (member b (mapcar #'window-buffer (window-list)))
+      (switch-to-buffer b))
+    (with-current-buffer b
+      (when freshp
+        (setup-ddg-ai-buffer))
+      (end-of-buffer)
+      (when freshp (org-meta-return))
+      (insert question)
+      (ddg-ai-org-insert-answer))))
