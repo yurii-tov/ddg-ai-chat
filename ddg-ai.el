@@ -63,8 +63,8 @@
 
 
 (defun cleanup-ddg-ai-cache ()
-  (message (shell-command-to-string
-            (format "%s --remove-cache" ddg-ai-executable))))
+  (shell-command-to-string
+   (format "%s --remove-cache" ddg-ai-executable)))
 
 
 (defun setup-ddg-ai-buffer ()
