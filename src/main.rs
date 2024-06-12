@@ -5,7 +5,7 @@ use reqwest::Client;
 use clap::Parser;
 
 use crate::{cache::Cache, config::Config};
-use crate::api::{get_res, get_vqd, simulate_browser_reqs};
+use crate::api::{get_res, simulate_browser_reqs};
 
 mod cache;
 mod config;
@@ -48,7 +48,13 @@ async fn main() {
     }
 
     if args.remove_cache {
-        cache.remove();
+        match cache.remove() {
+            Ok(_) => {},
+            Err(err) => {
+                eprintln!("{RED}Error removing cache: {err}{RESET}");
+                exit(2);
+            }
+        }
         eprintln!("{GREEN}Cache removed{RESET}");
         exit(0);
     }
