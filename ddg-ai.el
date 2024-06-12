@@ -53,7 +53,8 @@
           (call-interactively 'org-next-visible-heading)
           (dotimes (i 2)
             (call-interactively 'org-return))
-          (org-meta-return))
+          (org-meta-return)
+          (call-interactively 'org-previous-visible-heading))
       (org-return))))
 
 
