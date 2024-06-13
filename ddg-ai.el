@@ -78,11 +78,9 @@
   (let* ((n "*ddg-ai-chat*")
          (freshp (not (get-buffer n)))
          (b (get-buffer-create n))
-         (question (concat question
-                           (when (use-region-p)
-                             (format "\n#+begin_example\n%s\n#+end_example\n"
-                                     (buffer-substring (region-beginning)
-                                                       (region-end)))))))
+         (details (when (use-region-p)
+                    (buffer-substring (region-beginning)
+                                      (region-end)))))
     (unless (member b (mapcar #'window-buffer (window-list)))
       (switch-to-buffer b))
     (with-current-buffer b
@@ -90,5 +88,9 @@
         (setup-ddg-ai-buffer))
       (end-of-buffer)
       (when freshp (org-meta-return))
-      (insert question)
-      (ddg-ai-org-insert-answer question))))
+      (insert (concat question
+                      (when details
+                        (format "\n#+begin_example\n%s\n#+end_example\n"
+                                details))))
+      (ddg-ai-org-insert-answer
+       (concat question (when details (concat "\n" details)))))))
