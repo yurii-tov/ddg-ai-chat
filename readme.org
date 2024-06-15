@@ -6,7 +6,12 @@
      #+begin_example
        cargo build --release
      #+end_example
-  3. Add to Emacs config
+  3. Create config file at $USERPROFILE/.config/hey/conf.toml
+     #+begin_src toml
+       model = "Claude"
+       tos = true
+     #+end_src
+  4. Add to Emacs config
      (Example)
      #+begin_src emacs-lisp
        (progn (add-to-list 'exec-path "~/.emacs.d/ddg-ai-chat/target/release/")
