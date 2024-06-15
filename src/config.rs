@@ -1,15 +1,10 @@
-use std::{env, error::Error, fs, io, path::PathBuf};
+use std::{env, error::Error, fs, io, path::PathBuf, str::FromStr};
 
 use home::home_dir;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Model {
-    // outdated
-    Claude12,
-    GPT35,
-
-    // current
     Claude,
     GPT3,
     Llama,
@@ -19,13 +14,24 @@ pub enum Model {
 impl ToString for Model {
     fn to_string(&self) -> String {
         match self {
-            Self::Claude12 => panic!("Your config is outdated! Please delete your ~/.config/hey directory"),
-            Self::GPT35 => panic!("Your config is outdated! Please delete your ~/.config/hey directory"),
-            
             Self::Claude => String::from("claude-3-haiku-20240307"),
             Self::GPT3 => String::from("gpt-3.5-turbo-0125"),
             Self::Llama => String::from("meta-llama/Llama-3-70b-chat-hf"),
             Self::Mixtral => String::from("mistralai/Mixtral-8x7B-Instruct-v0.1")
+        }
+    }
+}
+
+impl FromStr for Model {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Claude" => Ok(Model::Claude),
+            "GPT3" => Ok(Model::GPT3),
+            "Llama" => Ok(Model::Llama),
+            "Mixtral" => Ok(Model::Mixtral),
+            _ => Err(()),
         }
     }
 }
@@ -49,11 +55,11 @@ impl Config {
     pub fn get_path<T: From<String>>() -> T {
         match env::var("HEY_CONFIG_PATH") {
             Ok(v) => v,
-            Err(_) => 
-            match home_dir() {
-                Some(home) => home.join(".config/hey").as_os_str().as_encoded_bytes().iter().map(|x| char::from(*x)).collect::<String>(),
-                None => panic!("Cannot detect your home directory!")
-            }
+            Err(_) =>
+                match home_dir() {
+                    Some(home) => home.join(".config/hey").as_os_str().as_encoded_bytes().iter().map(|x| char::from(*x)).collect::<String>(),
+                    None => panic!("Cannot detect your home directory!")
+                }
         }.into()
     }
 
@@ -88,7 +94,7 @@ impl Config {
         } else {
             let conf: Config = toml::from_str(&fs::read_to_string(file_path)?)?;
             conf.model.to_string(); // so that it would panic if the config is outdated
-            
+
             Ok(conf)
         }
     }
