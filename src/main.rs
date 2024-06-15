@@ -24,6 +24,8 @@ struct Args {
     pub agree_tos: bool,
     #[arg(long, required = false, help = "Remove Chat history file")]
     pub remove_cache: bool,
+    #[arg(long, required = false, help = "Print current 'model' setting")]
+    pub print_model: bool,
     #[arg()]
     pub query: Vec<String>,
 }
@@ -56,6 +58,11 @@ async fn main() {
             }
         }
         eprintln!("{GREEN}Cache removed{RESET}");
+        exit(0);
+    }
+
+    if args.print_model {
+        println!("{}", config.model.to_string());
         exit(0);
     }
 

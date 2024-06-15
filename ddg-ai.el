@@ -70,7 +70,9 @@
   (local-set-key
    (kbd "RET")
    'ddg-ai-org-insert-answer)
-  (add-hook 'kill-buffer-hook 'cleanup-ddg-ai-cache nil t))
+  (add-hook 'kill-buffer-hook 'cleanup-ddg-ai-cache nil t)
+  (insert (format "# AI Chat\n# Model: %s\n\n"
+                  (shell-command-to-string (format "%s --print-model" ddg-ai-executable)))))
 
 
 (defun ask-ddg-ai (question)
@@ -87,7 +89,7 @@
       (when freshp
         (setup-ddg-ai-buffer))
       (end-of-buffer)
-      (when freshp (org-meta-return))
+      (when freshp (insert "* "))
       (insert (concat question
                       (when details
                         (format "\n#+begin_example\n%s\n#+end_example\n"
