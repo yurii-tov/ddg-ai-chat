@@ -4,7 +4,7 @@ use reqwest::Client;
 
 use clap::Parser;
 
-use crate::{cache::Cache, config::Config, config::Model};
+use crate::{cache::Cache, config::Config, config::Model, config::HINT_AVAILABLE};
 use crate::api::{get_res, simulate_browser_reqs};
 
 mod cache;
@@ -28,6 +28,8 @@ struct Args {
     pub print_model: bool,
     #[arg(long, required = false, help = "Set AI model")]
     pub set_model: Option<String>,
+    #[arg(long, required = false, help = "List models available")]
+    pub list_models: bool,
     #[arg()]
     pub query: Vec<String>,
 }
@@ -65,6 +67,11 @@ async fn main() {
 
     if args.print_model {
         println!("{}", config.model.to_string());
+        exit(0);
+    }
+
+    if args.list_models {
+        println!("{}", HINT_AVAILABLE);
         exit(0);
     }
 

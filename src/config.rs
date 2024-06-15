@@ -11,6 +11,8 @@ pub enum Model {
     Mixtral
 }
 
+pub const HINT_AVAILABLE: &str = "Claude, GPT3, Llama, Mixtral";
+
 impl ToString for Model {
     fn to_string(&self) -> String {
         match self {
