@@ -42,7 +42,7 @@
     (call-interactively 'org-return)
     (if question
         (progn
-          (add-to-history 'ddg-ai-query-history question)
+          (add-to-history 'ddg-ai-query-history (car (string-split question "\n")))
           (insert "# Generating answer...")
           (sit-for 0.05)
           (let ((a (ddg-ai question)))
