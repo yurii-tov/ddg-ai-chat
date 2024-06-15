@@ -63,8 +63,9 @@
 
 
 (defun ddg-ai-cleanup-cache ()
-  (shell-command-to-string
-   (format "%s --remove-cache" ddg-ai-executable)))
+  (interactive)
+  (shell-command (format "%s --remove-cache" ddg-ai-executable))
+  (message "Cache has been deleted"))
 
 
 (defun ddg-ai-model ()
