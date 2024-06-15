@@ -62,7 +62,7 @@
       (org-return))))
 
 
-(defun cleanup-ddg-ai-cache ()
+(defun ddg-ai-cleanup-cache ()
   (shell-command-to-string
    (format "%s --remove-cache" ddg-ai-executable)))
 
@@ -80,7 +80,7 @@
                                       (format "%s --list-models" ddg-ai-executable)))
                                     "," nil " "))))
   (shell-command (format "%s --set-model %s" ddg-ai-executable model))
-  (cleanup-ddg-ai-cache)
+  (ddg-ai-cleanup-cache)
   (when (get-buffer ddg-ai-buffer)
     (with-current-buffer ddg-ai-buffer
       (save-excursion
@@ -99,8 +99,13 @@
   (local-set-key
    (kbd "C-c C-m")
    'ddg-ai-set-model)
-  (add-hook 'kill-buffer-hook 'cleanup-ddg-ai-cache nil t)
-  (insert (format "# AI Chat\n# Model: %s\n\n\n" (ddg-ai-model))))
+  (local-set-key
+   (kbd "C-c C-k")
+   'ddg-ai-cleanup-cache)
+  (add-hook 'kill-buffer-hook 'ddg-ai-cleanup-cache nil t)
+  (insert (format "# AI Chat\n\n# Model: %s\n\n# Keybindings:\n%s\n\n\n"
+                  (ddg-ai-model)
+                  "# C-c C-m  Set AI model\n# C-c C-k  Cleanup context")))
 
 
 (defun ask-ddg-ai (question)
