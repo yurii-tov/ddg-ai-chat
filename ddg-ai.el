@@ -10,7 +10,7 @@
   (let* ((question (replace-regexp-in-string "'" "" question)))
     (with-temp-buffer
       (insert (replace-regexp-in-string
-               "^```\\(.+\\)"
+               "^\s*```\\(.+\\)"
                "#+begin_src \\1"
                (replace-regexp-in-string
                 ".*Contacting DuckDuckGo chat AI.*\n"
@@ -20,14 +20,14 @@
       (beginning-of-buffer)
       (while (search-forward "#+begin_src" nil t)
         (let ((p (point)))
-          (re-search-forward "^```" nil t)
-          (replace-regexp "^```" "#+end_src" nil p (point) t)))
+          (re-search-forward "^\s*```" nil t)
+          (replace-regexp "^\s*```" "#+end_src" nil p (point) t)))
       (beginning-of-buffer)
-      (while (re-search-forward "^```" nil t)
-        (replace-regexp "^```" "#+begin_example" nil nil nil t)
+      (while (re-search-forward "^\s*```" nil t)
+        (replace-regexp "^\s*```" "#+begin_example" nil nil nil t)
         (let ((p (point)))
-          (re-search-forward "^```" nil t)
-          (replace-regexp "^```" "#+end_example" nil p (point) t)))
+          (re-search-forward "^\s*```" nil t)
+          (replace-regexp "^\s*```" "#+end_example" nil p (point) t)))
       (buffer-substring 1 (point-max)))))
 
 
