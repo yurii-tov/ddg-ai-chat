@@ -8,7 +8,7 @@ pub enum Model {
     Claude,
     GPT3,
     Llama,
-    Mixtral
+    Mixtral,
 }
 
 pub const HINT_AVAILABLE: &str = "Claude, GPT3, Llama, Mixtral";
@@ -19,7 +19,7 @@ impl ToString for Model {
             Self::Claude => String::from("claude-3-haiku-20240307"),
             Self::GPT3 => String::from("gpt-3.5-turbo-0125"),
             Self::Llama => String::from("meta-llama/Llama-3-70b-chat-hf"),
-            Self::Mixtral => String::from("mistralai/Mixtral-8x7B-Instruct-v0.1")
+            Self::Mixtral => String::from("mistralai/Mixtral-8x7B-Instruct-v0.1"),
         }
     }
 }
@@ -41,14 +41,14 @@ impl FromStr for Model {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub model: Model,
-    pub tos: bool
+    pub tos: bool,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
             model: Model::Claude,
-            tos: false
+            tos: false,
         }
     }
 }
@@ -57,24 +57,33 @@ impl Config {
     pub fn get_path<T: From<String>>() -> T {
         match env::var("HEY_CONFIG_PATH") {
             Ok(v) => v,
-            Err(_) =>
-                match home_dir() {
-                    Some(home) => home.join(".config/hey").as_os_str().as_encoded_bytes().iter().map(|x| char::from(*x)).collect::<String>(),
-                    None => panic!("Cannot detect your home directory!")
-                }
-        }.into()
+            Err(_) => match home_dir() {
+                Some(home) => home
+                    .join(".config/hey")
+                    .as_os_str()
+                    .as_encoded_bytes()
+                    .iter()
+                    .map(|x| char::from(*x))
+                    .collect::<String>(),
+                None => panic!("Cannot detect your home directory!"),
+            },
+        }
+        .into()
     }
 
     pub fn get_file_name<T: From<String>>() -> T {
         match env::var("HEY_CONFIG_FILENAME") {
             Ok(v) => v,
-            Err(_) => "conf.toml".into()
-        }.into()
+            Err(_) => "conf.toml".into(),
+        }
+        .into()
     }
 
     fn ensure_dir_exists() -> io::Result<()> {
         let path: PathBuf = Self::get_path();
-        if ! path.is_dir() { fs::create_dir_all(path)? }
+        if !path.is_dir() {
+            fs::create_dir_all(path)?
+        }
         Ok(())
     }
 
@@ -91,7 +100,7 @@ impl Config {
         let path = Self::get_path::<PathBuf>();
 
         let file_path = path.join(Self::get_file_name::<String>());
-        if ! file_path.is_file() {
+        if !file_path.is_file() {
             Ok(Self::default())
         } else {
             let conf: Config = toml::from_str(&fs::read_to_string(file_path)?)?;

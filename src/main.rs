@@ -4,23 +4,28 @@ use reqwest::Client;
 
 use clap::Parser;
 
-use crate::{cache::Cache, config::Config, config::Model, config::HINT_AVAILABLE};
 use crate::api::{get_res, simulate_browser_reqs};
+use crate::{cache::Cache, config::Config, config::Model, config::HINT_AVAILABLE};
 
+mod api;
 mod cache;
 mod config;
-mod api;
 
 pub const GREEN: &str = "\x1b[1;32m";
-pub const RED:   &str = "\x1b[1;31m";
-pub const BLUE:  &str = "\x1b[34m";
-pub const WARN:  &str = "\x1b[33m";
+pub const RED: &str = "\x1b[1;31m";
+pub const BLUE: &str = "\x1b[34m";
+pub const WARN: &str = "\x1b[33m";
 pub const RESET: &str = "\x1b[0m";
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
-    #[arg(long, default_value = "false", required = false, help = "If you want to agree to the DuckDuckGo TOS")]
+    #[arg(
+        long,
+        default_value = "false",
+        required = false,
+        help = "If you want to agree to the DuckDuckGo TOS"
+    )]
     pub agree_tos: bool,
     #[arg(long, required = false, help = "Remove Chat history file")]
     pub remove_cache: bool,
@@ -45,7 +50,7 @@ async fn main() {
     let mut config = Config::load().unwrap();
 
     if args.agree_tos {
-        if ! config.tos {
+        if !config.tos {
             println!("{GREEN}TOS accepted{RESET}");
         }
         config.tos = true;
@@ -55,7 +60,7 @@ async fn main() {
 
     if args.remove_cache {
         match cache.remove() {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(err) => {
                 eprintln!("{RED}Error removing cache: {err}{RESET}");
                 exit(2);
@@ -82,7 +87,7 @@ async fn main() {
                 config.model = m;
                 config.save().expect("Error saving config");
                 exit(0);
-            },
+            }
             Err(_) => {
                 eprintln!("{RED}Invalid model name: {model}{RESET}");
                 exit(2);
@@ -90,11 +95,16 @@ async fn main() {
         }
     }
 
-    if ! config.tos {
+    if !config.tos {
         eprintln!("{RED}You need to agree to duckduckgo AI chat TOS to continue.{RESET}");
         eprintln!("{RED}Visit it on this URL: {RESET}{BLUE}https://duckduckgo.com/?q=duckduckgo+ai+chat&ia=chat{RESET}");
         eprintln!("Once you read it, pass --agree-tos parameter to agree.");
-        eprintln!("{WARN}Note: if you want to, modify `tos` parameter in {}{RESET}", Config::get_path::<PathBuf>().join(Config::get_file_name::<String>()).display());
+        eprintln!(
+            "{WARN}Note: if you want to, modify `tos` parameter in {}{RESET}",
+            Config::get_path::<PathBuf>()
+                .join(Config::get_file_name::<String>())
+                .display()
+        );
         exit(3);
     }
 
@@ -104,5 +114,4 @@ async fn main() {
     simulate_browser_reqs(&cli).await.unwrap();
 
     get_res(&cli, query, &mut cache, &config).await;
-
 }

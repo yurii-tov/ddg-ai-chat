@@ -1,13 +1,13 @@
-use std::{env, error::Error, fs, io, path::PathBuf};
+use crate::api::ChatMessagePayload;
 use home::home_dir;
 use serde::{Deserialize, Serialize};
-use crate::api::ChatMessagePayload;
+use std::{env, error::Error, fs, io, path::PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Cache {
     pub last_vqd: String,
     pub messages: Vec<ChatMessagePayload>,
-    pub last_vqd_time: u64
+    pub last_vqd_time: u64,
 }
 
 impl Default for Cache {
@@ -15,34 +15,42 @@ impl Default for Cache {
         Self {
             last_vqd: "".into(),
             messages: Vec::new(),
-            last_vqd_time: 0
+            last_vqd_time: 0,
         }
     }
 }
 
 impl Cache {
-
     pub fn get_path<T: From<String>>() -> T {
         match env::var("HEY_CACHE_PATH") {
             Ok(v) => v,
-            Err(_) =>
-                match home_dir() {
-                    Some(home) => home.join(".cache/hey").as_os_str().as_encoded_bytes().iter().map(|x| char::from(*x)).collect::<String>(),
-                    None => panic!("Cannot detect your home directory!")
-                }
-        }.into()
+            Err(_) => match home_dir() {
+                Some(home) => home
+                    .join(".cache/hey")
+                    .as_os_str()
+                    .as_encoded_bytes()
+                    .iter()
+                    .map(|x| char::from(*x))
+                    .collect::<String>(),
+                None => panic!("Cannot detect your home directory!"),
+            },
+        }
+        .into()
     }
 
     pub fn get_file_name<T: From<String>>() -> T {
         match env::var("HEY_CACHE_FILENAME") {
             Ok(v) => v,
-            Err(_) => "cache.json".into()
-        }.into()
+            Err(_) => "cache.json".into(),
+        }
+        .into()
     }
 
     fn ensure_dir_exists() -> io::Result<()> {
         let path: PathBuf = Self::get_path();
-        if ! path.is_dir() { fs::create_dir_all(path)? }
+        if !path.is_dir() {
+            fs::create_dir_all(path)?
+        }
         Ok(())
     }
 
@@ -51,7 +59,7 @@ impl Cache {
         Self::ensure_dir_exists()?;
 
         let file_path = path.join(Self::get_file_name::<PathBuf>());
-        if ! file_path.is_file() {
+        if !file_path.is_file() {
             let def = Self::default();
             def.save()?;
             Ok(def)
@@ -80,7 +88,10 @@ impl Cache {
         &self.messages
     }
 
-    pub fn set_messages(self: &mut Self, messages: Vec<ChatMessagePayload>) -> Result<(), Box<dyn Error>> {
+    pub fn set_messages(
+        self: &mut Self,
+        messages: Vec<ChatMessagePayload>,
+    ) -> Result<(), Box<dyn Error>> {
         self.messages = messages;
         self.save()?;
         Ok(())

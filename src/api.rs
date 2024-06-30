@@ -1,11 +1,14 @@
 use std::error::Error;
 use std::process::exit;
 
-use reqwest::{header::{HeaderMap, HeaderValue}, Client};
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Client,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{cache::Cache, config::Config};
-use crate::{WARN, RED, RESET};
+use crate::{RED, RESET, WARN};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessagePayload {
@@ -16,7 +19,7 @@ pub struct ChatMessagePayload {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ChatPayload {
     pub model: String,
-    pub messages: Vec<ChatMessagePayload>
+    pub messages: Vec<ChatMessagePayload>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,7 +29,7 @@ struct ChatChunk {
     pub created: u64,
     pub action: String,
     pub id: Option<String>,
-    pub model: Option<String>
+    pub model: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,10 +44,24 @@ fn get_headers() -> HeaderMap {
     let mut map = HeaderMap::new();
     map.insert("Host", HeaderValue::from_static("duckduckgo.com"));
     map.insert("Accept", HeaderValue::from_static("text/event-stream"));
-    map.insert("Accept-Language", HeaderValue::from_static("en-US,en;q=0.5"));
-    map.insert("Accept-Encoding", HeaderValue::from_static("gzip, deflate, br"));
-    map.insert("Referer", HeaderValue::from_static("https://duckduckgo.com/"));
-    map.insert("User-Agent", HeaderValue::from_static("Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0"));
+    map.insert(
+        "Accept-Language",
+        HeaderValue::from_static("en-US,en;q=0.5"),
+    );
+    map.insert(
+        "Accept-Encoding",
+        HeaderValue::from_static("gzip, deflate, br"),
+    );
+    map.insert(
+        "Referer",
+        HeaderValue::from_static("https://duckduckgo.com/"),
+    );
+    map.insert(
+        "User-Agent",
+        HeaderValue::from_static(
+            "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0",
+        ),
+    );
     map.insert("DNT", HeaderValue::from_static("1"));
     map.insert("Sec-GPC", HeaderValue::from_static("1"));
     map.insert("Connection", HeaderValue::from_static("keep-alive"));
@@ -58,7 +75,8 @@ fn get_headers() -> HeaderMap {
 }
 
 pub async fn simulate_browser_reqs(cli: &Client) -> Result<(), Box<dyn Error>> {
-    let req = cli.get("https://duckduckgo.com/country.json")
+    let req = cli
+        .get("https://duckduckgo.com/country.json")
         .headers(get_headers())
         .header("X-Requested-With", "XMLHttpRequest")
         .build()?;
@@ -67,18 +85,22 @@ pub async fn simulate_browser_reqs(cli: &Client) -> Result<(), Box<dyn Error>> {
 }
 
 pub async fn get_vqd(cli: &Client) -> Result<String, Box<dyn Error>> {
-
     let mut headers = get_headers();
     headers.insert("Cache-Control", HeaderValue::from_static("no-store"));
     headers.insert("x-vqd-accept", HeaderValue::from_static("1"));
 
-    let req = cli.get("https://duckduckgo.com/duckchat/v1/status")
+    let req = cli
+        .get("https://duckduckgo.com/duckchat/v1/status")
         .headers(headers)
         .build()?;
 
     let res = cli.execute(req).await?;
 
-    let data = res.headers().iter().find(|x| x.0 == "x-vqd-4").map(|x| x.1.clone());
+    let data = res
+        .headers()
+        .iter()
+        .find(|x| x.0 == "x-vqd-4")
+        .map(|x| x.1.clone());
     if let Some(data) = data {
         Ok(data.to_str()?.to_string())
     } else {
@@ -93,33 +115,47 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
             let old_messages = cache.get_messages();
             messages.extend(old_messages.clone());
             v
-        },
-        None => get_vqd(&cli).await.unwrap()
+        }
+        None => get_vqd(&cli).await.unwrap(),
     };
-    let message = ChatMessagePayload { role: "user".into(), content: query.clone() };
+    let message = ChatMessagePayload {
+        role: "user".into(),
+        content: query.clone(),
+    };
     messages.push(message.clone());
     let payload = ChatPayload {
         model: config.model.to_string(),
-        messages: messages.clone()
+        messages: messages.clone(),
     };
     let payload = serde_json::to_string(&payload).unwrap();
 
-    let req = cli.post("https://duckduckgo.com/duckchat/v1/chat")
+    let req = cli
+        .post("https://duckduckgo.com/duckchat/v1/chat")
         .header("Content-Type", "application/json")
-        .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0")
+        .header(
+            "User-Agent",
+            "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0",
+        )
         .header("x-vqd-4", vqd.clone())
         .body(payload)
-        .build().unwrap();
+        .build()
+        .unwrap();
 
     let mut res = cli.execute(req).await.unwrap();
     let new_vqd = res.headers().iter().find(|x| x.0 == "x-vqd-4");
-    let vqd_set_res =
-        if let Some(new_vqd) = new_vqd {
-            cache.set_last_vqd(new_vqd.1.as_bytes().iter().map(|x| char::from(*x)).collect::<String>())
-        } else {
-            eprintln!("{WARN}Warn: DuckDuckGo did not return new VQD. Ignore this if everything else is ok.{RESET}");
-            cache.set_last_vqd(vqd.clone())
-        };
+    let vqd_set_res = if let Some(new_vqd) = new_vqd {
+        cache.set_last_vqd(
+            new_vqd
+                .1
+                .as_bytes()
+                .iter()
+                .map(|x| char::from(*x))
+                .collect::<String>(),
+        )
+    } else {
+        eprintln!("{WARN}Warn: DuckDuckGo did not return new VQD. Ignore this if everything else is ok.{RESET}");
+        cache.set_last_vqd(vqd.clone())
+    };
     if let Err(err) = vqd_set_res {
         eprintln!("{WARN}Warn: Could not save VQD to cache: {err}{RESET}");
     }
@@ -127,10 +163,12 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
     let mut answer = String::from_utf8(vec![]).unwrap();
 
     while let Some(chunk) = res.chunk().await.unwrap() {
-
         if let Ok(obj) = serde_json::from_slice::<ErrChatChunk>(&chunk) {
             if obj.action == "error" {
-                eprintln!("{RED}Error obtaining response: {} - {}{RESET}", obj.status, obj.err_type);
+                eprintln!(
+                    "{RED}Error obtaining response: {} - {}{RESET}",
+                    obj.status, obj.err_type
+                );
                 exit(1);
             }
         }
@@ -144,11 +182,14 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
             }
         }
     }
-    let answer = ChatMessagePayload { role: "assistant".into(), content: answer };
+    let answer = ChatMessagePayload {
+        role: "assistant".into(),
+        content: answer,
+    };
     messages.push(answer.clone());
     match cache.set_messages(messages.to_vec()) {
         Ok(_) => (),
-        Err(err) => eprintln!("{WARN}Warn: Could not save messages to cache: {err}{RESET}")
+        Err(err) => eprintln!("{WARN}Warn: Could not save messages to cache: {err}{RESET}"),
     }
 
     println!("\n");
