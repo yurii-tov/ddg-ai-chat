@@ -87,7 +87,7 @@ impl Config {
         Ok(())
     }
 
-    pub fn save(self: &Self) -> Result<(), Box<dyn Error>> {
+    pub fn save(&self) -> Result<(), Box<dyn Error>> {
         let path = Self::get_path::<PathBuf>();
         Self::ensure_dir_exists()?;
 

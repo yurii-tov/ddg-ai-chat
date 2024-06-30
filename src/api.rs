@@ -116,7 +116,7 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
             messages.extend(old_messages.clone());
             v
         }
-        None => get_vqd(&cli).await.unwrap(),
+        None => get_vqd(cli).await.unwrap(),
     };
     let message = ChatMessagePayload {
         role: "user".into(),

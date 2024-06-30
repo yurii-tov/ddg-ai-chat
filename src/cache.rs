@@ -69,7 +69,7 @@ impl Cache {
         }
     }
 
-    pub fn save(self: &Self) -> Result<(), Box<dyn Error>> {
+    pub fn save(&self) -> Result<(), Box<dyn Error>> {
         let path: PathBuf = Self::get_path();
         Self::ensure_dir_exists()?;
 
@@ -78,18 +78,18 @@ impl Cache {
         Ok(())
     }
 
-    pub fn remove(self: &Self) -> Result<(), Box<dyn Error>> {
+    pub fn remove(&self) -> Result<(), Box<dyn Error>> {
         let path: PathBuf = Self::get_path();
         fs::remove_file(path.join(Self::get_file_name::<PathBuf>()))?;
         Ok(())
     }
 
-    pub fn get_messages(self: &Self) -> &Vec<ChatMessagePayload> {
+    pub fn get_messages(&self) -> &Vec<ChatMessagePayload> {
         &self.messages
     }
 
     pub fn set_messages(
-        self: &mut Self,
+        &mut self,
         messages: Vec<ChatMessagePayload>,
     ) -> Result<(), Box<dyn Error>> {
         self.messages = messages;
@@ -97,14 +97,14 @@ impl Cache {
         Ok(())
     }
 
-    pub fn set_last_vqd<T: Into<String>>(self: &mut Self, vqd: T) -> Result<(), Box<dyn Error>> {
+    pub fn set_last_vqd<T: Into<String>>(&mut self, vqd: T) -> Result<(), Box<dyn Error>> {
         self.last_vqd = vqd.into();
         self.last_vqd_time = chrono::Local::now().timestamp_millis() as u64;
         self.save()?;
         Ok(())
     }
 
-    pub fn get_last_vqd<'a, T: From<&'a String>>(self: &'a Self) -> Option<T> {
+    pub fn get_last_vqd<'a, T: From<&'a String>>(&'a self) -> Option<T> {
         if (chrono::Local::now().timestamp_millis() as u64) - self.last_vqd_time < 600000 {
             Some((&self.last_vqd).into())
         } else {
