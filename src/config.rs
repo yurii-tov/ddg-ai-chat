@@ -1,4 +1,4 @@
-use std::{env, error::Error, fs, io, path::PathBuf, str::FromStr};
+use std::{env, error::Error, fmt::Display, fs, io, path::PathBuf, str::FromStr};
 
 use home::home_dir;
 use serde::{Deserialize, Serialize};
@@ -13,13 +13,13 @@ pub enum Model {
 
 pub const HINT_AVAILABLE: &str = "Claude, GPT3, Llama, Mixtral";
 
-impl ToString for Model {
-    fn to_string(&self) -> String {
+impl Display for Model {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Claude => String::from("claude-3-haiku-20240307"),
-            Self::GPT3 => String::from("gpt-3.5-turbo-0125"),
-            Self::Llama => String::from("meta-llama/Llama-3-70b-chat-hf"),
-            Self::Mixtral => String::from("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+            Self::Claude => write!(f, "claude-3-haiku-20240307"),
+            Self::GPT3 => write!(f, "gpt-3.5-turbo-0125"),
+            Self::Llama => write!(f, "meta-llama/Llama-3-70b-chat-hf"),
+            Self::Mixtral => write!(f, "mistralai/Mixtral-8x7B-Instruct-v0.1")
         }
     }
 }

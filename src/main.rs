@@ -71,7 +71,7 @@ async fn main() {
     }
 
     if args.print_model {
-        println!("{}", config.model.to_string());
+        println!("{}", config.model);
         exit(0);
     }
 
