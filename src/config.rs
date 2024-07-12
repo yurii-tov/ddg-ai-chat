@@ -19,7 +19,7 @@ impl Display for Model {
             Self::Claude => write!(f, "claude-3-haiku-20240307"),
             Self::GPT3 => write!(f, "gpt-3.5-turbo-0125"),
             Self::Llama => write!(f, "meta-llama/Llama-3-70b-chat-hf"),
-            Self::Mixtral => write!(f, "mistralai/Mixtral-8x7B-Instruct-v0.1")
+            Self::Mixtral => write!(f, "mistralai/Mixtral-8x7B-Instruct-v0.1"),
         }
     }
 }
@@ -41,14 +41,12 @@ impl FromStr for Model {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub model: Model,
-    pub tos: bool,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
             model: Model::Claude,
-            tos: false,
         }
     }
 }

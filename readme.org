@@ -1,4 +1,11 @@
 #+TITLE: DDG AI Chat client for Emacs
+
+* Disclaimer
+  By using this program, you agree to abide by the following Terms of Service (TOS):
+  https://duckduckgo.com/?q=duckduckgo+ai+chat&ia=chat
+  By continuing to use this program, you indicate your acceptance of these Terms of Service.
+  If you do not agree with any part of these terms, please refrain from using the program.
+
 * Setup
   1. Download the repo
      For example, to ~/.emacs.d/ddg-ai-chat/
@@ -6,12 +13,7 @@
      #+begin_example
        cargo build --release
      #+end_example
-  3. Create config file at $USERPROFILE/.config/hey/conf.toml
-     #+begin_src toml
-       model = "Claude"
-       tos = true
-     #+end_src
-  4. Add to Emacs config
+  3. Add to Emacs config
      (Example)
      #+begin_src emacs-lisp
        (progn (add-to-list 'exec-path "~/.emacs.d/ddg-ai-chat/target/release/")
