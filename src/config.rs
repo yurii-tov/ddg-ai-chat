@@ -53,11 +53,11 @@ impl Default for Config {
 
 impl Config {
     pub fn get_path<T: From<String>>() -> T {
-        match env::var("HEY_CONFIG_PATH") {
+        match env::var("DDG_AI_CHAT_CONFIG_PATH") {
             Ok(v) => v,
             Err(_) => match home_dir() {
                 Some(home) => home
-                    .join(".config/hey")
+                    .join(".config/ddg-ai-chat")
                     .as_os_str()
                     .as_encoded_bytes()
                     .iter()
@@ -70,7 +70,7 @@ impl Config {
     }
 
     pub fn get_file_name<T: From<String>>() -> T {
-        match env::var("HEY_CONFIG_FILENAME") {
+        match env::var("DDG_AI_CHAT_CONFIG_FILENAME") {
             Ok(v) => v,
             Err(_) => "conf.toml".into(),
         }

@@ -22,11 +22,11 @@ impl Default for Cache {
 
 impl Cache {
     pub fn get_path<T: From<String>>() -> T {
-        match env::var("HEY_CACHE_PATH") {
+        match env::var("DDG_AI_CHAT_CACHE_PATH") {
             Ok(v) => v,
             Err(_) => match home_dir() {
                 Some(home) => home
-                    .join(".cache/hey")
+                    .join(".cache/ddg-ai-chat")
                     .as_os_str()
                     .as_encoded_bytes()
                     .iter()
@@ -39,7 +39,7 @@ impl Cache {
     }
 
     pub fn get_file_name<T: From<String>>() -> T {
-        match env::var("HEY_CACHE_FILENAME") {
+        match env::var("DDG_AI_CHAT_CACHE_FILENAME") {
             Ok(v) => v,
             Err(_) => "cache.json".into(),
         }

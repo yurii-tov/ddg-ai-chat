@@ -1,5 +1,5 @@
-(setq ddg-ai-executable (or (executable-find "hey.exe")
-                            (error "Unable to find hey.exe")))
+(setq ddg-ai-executable (or (executable-find "ddg-ai-chat.exe")
+                            (error "Unable to find ddg-ai-chat.exe")))
 
 
 (setq ddg-ai-buffer "*ddg-ai-chat*")
