@@ -186,7 +186,7 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
         role: "assistant".into(),
         content: answer,
     };
-    messages.push(answer.clone());
+    messages.push(answer);
     match cache.set_messages(messages.to_vec()) {
         Ok(_) => (),
         Err(err) => eprintln!("{WARN}Warn: Could not save messages to cache: {err}{RESET}"),
