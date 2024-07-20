@@ -5,6 +5,12 @@
 (setq ddg-ai-buffer "*ddg-ai-chat*")
 
 
+(defun ddg-ai-shell-exec (command)
+  (let ((default-directory "~"))
+    (shell-command-to-string
+     (format "%s %s" ddg-ai-executable command))))
+
+
 (defun ddg-ai (question)
   "Ask DDG AI about something, get an answer"
   (let* ((question (replace-regexp-in-string "'" "" question)))
@@ -15,8 +21,8 @@
                (replace-regexp-in-string
                 ".*Contacting DuckDuckGo chat AI.*\n"
                 ""
-                (shell-command-to-string
-                 (format "%s '%s'" ddg-ai-executable question)))))
+                (ddg-ai-shell-exec
+                 (format "'%s'" question)))))
       (beginning-of-buffer)
       (while (search-forward "#+begin_src" nil t)
         (let ((p (point)))
@@ -64,23 +70,22 @@
 
 (defun ddg-ai-cleanup-cache ()
   (interactive)
-  (shell-command (format "%s --remove-cache" ddg-ai-executable))
+  (ddg-ai-shell-exec "--remove-cache")
   (message "Cache has been deleted"))
 
 
 (defun ddg-ai-model ()
   (string-trim-right
-   (shell-command-to-string (format "%s --print-model" ddg-ai-executable))))
+   (ddg-ai-shell-exec "--print-model")))
 
 
 (defun ddg-ai-set-model (model)
   (interactive (list (completing-read
                       "Model: "
                       (split-string (string-trim-right
-                                     (shell-command-to-string
-                                      (format "%s --list-models" ddg-ai-executable)))
+                                     (ddg-ai-shell-exec "--list-models"))
                                     "," nil " "))))
-  (shell-command (format "%s --set-model %s" ddg-ai-executable model))
+  (ddg-ai-shell-exec (format "--set-model %s" model))
   (ddg-ai-cleanup-cache)
   (when (get-buffer ddg-ai-buffer)
     (with-current-buffer ddg-ai-buffer
