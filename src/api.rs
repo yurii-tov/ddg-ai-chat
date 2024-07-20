@@ -182,11 +182,10 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
             }
         }
     }
-    let answer = ChatMessagePayload {
+    messages.push(ChatMessagePayload {
         role: "assistant".into(),
         content: answer,
-    };
-    messages.push(answer);
+    });
     match cache.set_messages(messages.to_vec()) {
         Ok(_) => (),
         Err(err) => eprintln!("{WARN}Warn: Could not save messages to cache: {err}{RESET}"),
