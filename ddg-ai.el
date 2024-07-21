@@ -1,14 +1,25 @@
+;; Core
+
+
 (setq ddg-ai-executable (or (executable-find "ddg-ai-chat")
                             (error "Unable to find ddg-ai-chat")))
-
-
-(setq ddg-ai-buffer "*ddg-ai-chat*")
 
 
 (defun ddg-ai-shell-exec (command)
   (let ((default-directory "~"))
     (shell-command-to-string
      (format "%s %s" ddg-ai-executable command))))
+
+
+(defun ddg-ai-model ()
+  (string-trim-right
+   (ddg-ai-shell-exec "--print-model")))
+
+
+(defun ddg-ai-cleanup-cache ()
+  (interactive)
+  (ddg-ai-shell-exec "--remove-cache")
+  (message "Cache has been deleted"))
 
 
 (defun ddg-ai (question)
@@ -35,6 +46,33 @@
           (re-search-forward "^\s*```" nil t)
           (replace-regexp "^\s*```" "#+end_example" nil p (point) t)))
       (buffer-substring 1 (point-max)))))
+
+
+;; The chat
+
+
+(defun ddg-ai-chat-buffer-name ()
+  (format "*ddg-ai-chat:%s*" (ddg-ai-model)))
+
+
+(defun setup-ddg-ai-buffer-content ()
+  (insert "#+TITLE: DuckDuckGo AI Chat 🦆🤖\n\n* "))
+
+
+(defun setup-ddg-ai-buffer ()
+  (org-mode)
+  (use-local-map (copy-keymap (current-local-map)))
+  (local-set-key
+   (kbd "RET")
+   'ddg-ai-org-insert-answer)
+  (local-set-key
+   (kbd "C-c C-m")
+   'ddg-ai-set-model)
+  (local-set-key
+   (kbd "C-c C-k")
+   'ddg-ai-reset-chat)
+  (add-hook 'kill-buffer-hook 'ddg-ai-cleanup-cache nil t)
+  (setup-ddg-ai-buffer-content))
 
 
 (defun ddg-ai-org-insert-answer (&optional question)
@@ -66,57 +104,33 @@
       (org-return))))
 
 
-(defun ddg-ai-cleanup-cache ()
-  (interactive)
-  (ddg-ai-shell-exec "--remove-cache")
-  (message "Cache has been deleted"))
-
-
-(defun ddg-ai-model ()
-  (string-trim-right
-   (ddg-ai-shell-exec "--print-model")))
-
-
 (defun ddg-ai-set-model (model)
   (interactive (list (completing-read
                       "Model: "
                       (split-string (string-trim-right
                                      (ddg-ai-shell-exec "--list-models"))
                                     "," nil " "))))
-  (ddg-ai-shell-exec (format "--set-model %s" model))
-  (let ((model (ddg-ai-model)))
+  (let ((buffer-old-name (ddg-ai-chat-buffer-name)))
+    (ddg-ai-shell-exec (format "--set-model %s" model))
     (ddg-ai-cleanup-cache)
-    (when (get-buffer ddg-ai-buffer)
-      (with-current-buffer ddg-ai-buffer
-        (save-excursion
-          (beginning-of-buffer)
-          (when (search-forward "(Model: " nil t)
-            (kill-line)
-            (insert (concat model ")"))))))
+    (when (get-buffer buffer-old-name)
+      (with-current-buffer buffer-old-name
+        (rename-buffer (ddg-ai-chat-buffer-name))))
     (message "Model has been set to %s" model)))
 
 
-(defun setup-ddg-ai-buffer ()
-  (org-mode)
-  (use-local-map (copy-keymap (current-local-map)))
-  (local-set-key
-   (kbd "RET")
-   'ddg-ai-org-insert-answer)
-  (local-set-key
-   (kbd "C-c C-m")
-   'ddg-ai-set-model)
-  (local-set-key
-   (kbd "C-c C-k")
-   'ddg-ai-cleanup-cache)
-  (add-hook 'kill-buffer-hook 'ddg-ai-cleanup-cache nil t)
-  (insert (format "#+TITLE: DuckDuckGo AI Chat 🦆🤖 (Model: %s)\n"
-                  (ddg-ai-model))))
+(defun ddg-ai-reset-chat ()
+  (interactive)
+  (ddg-ai-cleanup-cache)
+  (erase-buffer)
+  (setup-ddg-ai-buffer-content))
 
 
 (defun ask-ddg-ai (question)
   (interactive (list (read-string "Ask DDG AI: " nil 'ddg-ai-query-history)))
-  (let* ((freshp (not (get-buffer ddg-ai-buffer)))
-         (b (get-buffer-create ddg-ai-buffer))
+  (let* ((ddg-ai-chat-buffer (ddg-ai-chat-buffer-name))
+         (freshp (not (get-buffer ddg-ai-chat-buffer)))
+         (b (get-buffer-create ddg-ai-chat-buffer))
          (details (when (use-region-p)
                     (buffer-substring (region-beginning)
                                       (region-end)))))
@@ -126,7 +140,8 @@
       (when freshp
         (setup-ddg-ai-buffer))
       (end-of-buffer)
-      (insert "\n* ")
+      (unless (looking-back "* ")
+        (insert "\n* "))
       (insert (concat question
                       (when details
                         (format "\n#+begin_example\n%s\n#+end_example\n"
