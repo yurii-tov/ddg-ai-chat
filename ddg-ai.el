@@ -109,7 +109,7 @@
    (kbd "C-c C-k")
    'ddg-ai-cleanup-cache)
   (add-hook 'kill-buffer-hook 'ddg-ai-cleanup-cache nil t)
-  (insert (format "# DuckDuckGo AI Chat 🦆🤖 (Model: %s)\n"
+  (insert (format "#+TITLE: DuckDuckGo AI Chat 🦆🤖 (Model: %s)\n"
                   (ddg-ai-model))))
 
 
