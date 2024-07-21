@@ -12,7 +12,7 @@
 
 
 (defun ddg-ai (question)
-  "Ask DDG AI about something, get an answer"
+  "Ask DDG AI about something, get an answer (in org-mode format)"
   (let* ((question (replace-regexp-in-string "'" "" question)))
     (with-temp-buffer
       (insert (replace-regexp-in-string
@@ -61,9 +61,7 @@
           (indent-region 1 (point-max))
           (whitespace-cleanup)
           (call-interactively 'org-next-visible-heading)
-          (dotimes (i 2)
-            (call-interactively 'org-return))
-          (org-meta-return)
+          (org-return)
           (call-interactively 'org-previous-visible-heading))
       (org-return))))
 
@@ -86,14 +84,16 @@
                                      (ddg-ai-shell-exec "--list-models"))
                                     "," nil " "))))
   (ddg-ai-shell-exec (format "--set-model %s" model))
-  (ddg-ai-cleanup-cache)
-  (when (get-buffer ddg-ai-buffer)
-    (with-current-buffer ddg-ai-buffer
-      (save-excursion
-        (beginning-of-buffer)
-        (search-forward "# Model: ")
-        (kill-line)
-        (insert (ddg-ai-model))))))
+  (let ((model (ddg-ai-model)))
+    (ddg-ai-cleanup-cache)
+    (when (get-buffer ddg-ai-buffer)
+      (with-current-buffer ddg-ai-buffer
+        (save-excursion
+          (beginning-of-buffer)
+          (when (search-forward "(Model: " nil t)
+            (kill-line)
+            (insert (concat model ")"))))))
+    (message "Model has been set to %s" model)))
 
 
 (defun setup-ddg-ai-buffer ()
@@ -109,9 +109,8 @@
    (kbd "C-c C-k")
    'ddg-ai-cleanup-cache)
   (add-hook 'kill-buffer-hook 'ddg-ai-cleanup-cache nil t)
-  (insert (format "# AI Chat\n\n# Model: %s\n\n# Keybindings:\n%s\n\n\n"
-                  (ddg-ai-model)
-                  "# C-c C-m  Set AI model\n# C-c C-k  Cleanup context")))
+  (insert (format "# DuckDuckGo AI Chat 🦆🤖 (Model: %s)\n"
+                  (ddg-ai-model))))
 
 
 (defun ask-ddg-ai (question)
@@ -127,7 +126,7 @@
       (when freshp
         (setup-ddg-ai-buffer))
       (end-of-buffer)
-      (when freshp (insert "* "))
+      (insert "\n* ")
       (insert (concat question
                       (when details
                         (format "\n#+begin_example\n%s\n#+end_example\n"
