@@ -7,7 +7,6 @@ use std::{env, error::Error, fs, io, path::PathBuf};
 pub struct Cache {
     pub last_vqd: String,
     pub messages: Vec<ChatMessagePayload>,
-    pub last_vqd_time: u64,
 }
 
 impl Default for Cache {
@@ -15,7 +14,6 @@ impl Default for Cache {
         Self {
             last_vqd: "".into(),
             messages: Vec::new(),
-            last_vqd_time: 0,
         }
     }
 }
@@ -99,16 +97,15 @@ impl Cache {
 
     pub fn set_last_vqd<T: Into<String>>(&mut self, vqd: T) -> Result<(), Box<dyn Error>> {
         self.last_vqd = vqd.into();
-        self.last_vqd_time = chrono::Local::now().timestamp_millis() as u64;
         self.save()?;
         Ok(())
     }
 
     pub fn get_last_vqd<'a, T: From<&'a String>>(&'a self) -> Option<T> {
-        if (chrono::Local::now().timestamp_millis() as u64) - self.last_vqd_time < 600000 {
-            Some((&self.last_vqd).into())
-        } else {
+        if &self.last_vqd == "" {
             None
+        } else {
+            Some((&self.last_vqd).into())
         }
     }
 }
