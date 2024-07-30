@@ -126,7 +126,7 @@
   (setup-ddg-ai-buffer-content))
 
 
-(defun ask-ddg-ai (question)
+(defun ddg-ai-chat (question)
   (interactive (list (read-string "Ask DDG AI: " nil 'ddg-ai-query-history)))
   (let* ((ddg-ai-chat-buffer (ddg-ai-chat-buffer-name))
          (freshp (not (get-buffer ddg-ai-chat-buffer)))
@@ -151,4 +151,4 @@
 
 
 (defun ddg-ai-chat-set-keybindings ()
-  (define-key search-map "a" 'ask-ddg-ai))
+  (define-key search-map "a" 'ddg-ai-chat))
