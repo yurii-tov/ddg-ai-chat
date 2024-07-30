@@ -110,13 +110,17 @@ pub async fn get_vqd(cli: &Client) -> Result<String, Box<dyn Error>> {
 
 pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, config: &Config) {
     let mut messages = vec![];
-    let vqd = match cache.get_last_vqd() {
-        Some(v) => {
-            let old_messages = cache.get_messages();
-            messages.extend(old_messages.clone());
-            v
+    let vqd = if config.no_cache {
+        get_vqd(cli).await.unwrap()
+    } else {
+        match cache.get_last_vqd() {
+            Some(v) => {
+                let old_messages = cache.get_messages();
+                messages.extend(old_messages.clone());
+                v
+            }
+            None => get_vqd(cli).await.unwrap(),
         }
-        None => get_vqd(cli).await.unwrap(),
     };
     let message = ChatMessagePayload {
         role: "user".into(),
@@ -142,22 +146,24 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
         .unwrap();
 
     let mut res = cli.execute(req).await.unwrap();
-    let new_vqd = res.headers().iter().find(|x| x.0 == "x-vqd-4");
-    let vqd_set_res = if let Some(new_vqd) = new_vqd {
-        cache.set_last_vqd(
-            new_vqd
-                .1
-                .as_bytes()
-                .iter()
-                .map(|x| char::from(*x))
-                .collect::<String>(),
-        )
-    } else {
-        eprintln!("{WARN}Warn: DuckDuckGo did not return new VQD. Ignore this if everything else is ok.{RESET}");
-        cache.set_last_vqd(vqd.clone())
-    };
-    if let Err(err) = vqd_set_res {
-        eprintln!("{WARN}Warn: Could not save VQD to cache: {err}{RESET}");
+    if !config.no_cache {
+        let new_vqd = res.headers().iter().find(|x| x.0 == "x-vqd-4");
+        let vqd_set_res = if let Some(new_vqd) = new_vqd {
+            cache.set_last_vqd(
+                new_vqd
+                    .1
+                    .as_bytes()
+                    .iter()
+                    .map(|x| char::from(*x))
+                    .collect::<String>(),
+            )
+        } else {
+            eprintln!("{WARN}Warn: DuckDuckGo did not return new VQD. Ignore this if everything else is ok.{RESET}");
+            cache.set_last_vqd(vqd.clone())
+        };
+        if let Err(err) = vqd_set_res {
+            eprintln!("{WARN}Warn: Could not save VQD to cache: {err}{RESET}");
+        }
     }
 
     let mut answer = String::from_utf8(vec![]).unwrap();
@@ -182,13 +188,16 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
             }
         }
     }
-    messages.push(ChatMessagePayload {
-        role: "assistant".into(),
-        content: answer,
-    });
-    match cache.set_messages(messages.to_vec()) {
-        Ok(_) => (),
-        Err(err) => eprintln!("{WARN}Warn: Could not save messages to cache: {err}{RESET}"),
+    // TODO: handle config.no_cache
+    if !config.no_cache {
+        messages.push(ChatMessagePayload {
+            role: "assistant".into(),
+            content: answer,
+        });
+        match cache.set_messages(messages.to_vec()) {
+            Ok(_) => (),
+            Err(err) => eprintln!("{WARN}Warn: Could not save messages to cache: {err}{RESET}"),
+        }
     }
 
     println!("\n");

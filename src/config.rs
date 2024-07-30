@@ -41,12 +41,14 @@ impl FromStr for Model {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub model: Model,
+    pub no_cache: bool
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
             model: Model::Claude,
+            no_cache: false
         }
     }
 }
@@ -98,7 +100,7 @@ impl Config {
         let path = Self::get_path::<PathBuf>();
 
         let file_path = path.join(Self::get_file_name::<String>());
-        if !file_path.is_file() {
+        if !&file_path.is_file() {
             Ok(Self::default())
         } else {
             let conf: Config = toml::from_str(&fs::read_to_string(file_path)?)?;

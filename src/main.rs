@@ -28,6 +28,8 @@ struct Args {
     pub set_model: Option<String>,
     #[arg(long, required = false, help = "List models available")]
     pub list_models: bool,
+    #[arg(long, required = false, help = "Don't use cache")]
+    pub no_cache: bool,
     #[arg()]
     pub query: Vec<String>,
 }
@@ -62,6 +64,10 @@ async fn main() {
     if args.list_models {
         println!("{}", HINT_AVAILABLE);
         exit(0);
+    }
+
+    if args.no_cache {
+        config.no_cache = true;
     }
 
     if let Some(model) = args.set_model {
