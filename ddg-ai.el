@@ -148,3 +148,7 @@
                                 details))))
       (ddg-ai-org-insert-answer
        (concat question (when details (concat "\n" details)))))))
+
+
+(defun ddg-ai-chat-set-keybindings ()
+  (define-key search-map "a" 'ask-ddg-ai))

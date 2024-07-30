@@ -1,5 +1,9 @@
 #+TITLE: DDG AI Chat client for Emacs
 
+DDG AI Chat + Emacs = 💜
+
+Based on https://github.com/b1ek/hey
+
 * Disclaimer
   By using this program, you agree to abide by the following Terms of Service (TOS):
   https://duckduckgo.com/?q=duckduckgo+ai+chat&ia=chat
@@ -18,5 +22,5 @@
      #+begin_src emacs-lisp
        (progn (add-to-list 'exec-path "~/.emacs.d/ddg-ai-chat/target/release/")
               (load-file "~/.emacs.d/ddg-ai-chat/ddg-ai.el")
-              (define-key search-map "a" 'ask-ddg-ai))
+              (ddg-ai-chat-set-keybindings))
      #+end_src
