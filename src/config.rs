@@ -47,7 +47,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            model: Model::Claude,
+            model: Model::GPT3,
             no_cache: false
         }
     }
