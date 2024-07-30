@@ -6,7 +6,7 @@ Based on https://github.com/b1ek/hey
 
 * Disclaimer
   By using this program, you agree to abide by the following Terms of Service (TOS):
-  https://duckduckgo.com/?q=duckduckgo+ai+chat&ia=chat
+  https://duckduckgo.com/aichat/privacy-terms
   By continuing to use this program, you indicate your acceptance of these Terms of Service.
   If you do not agree with any part of these terms, please refrain from using the program.
 
