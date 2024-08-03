@@ -22,7 +22,7 @@
   (message "Cache has been deleted"))
 
 
-(defun ddg-ai (question)
+(defun ddg-ai (question &optional no-cache)
   "Ask DDG AI about something, get an answer (in org-mode format)"
   (let* ((question (replace-regexp-in-string "'" "" question)))
     (with-temp-buffer
@@ -33,7 +33,7 @@
                 ".*Contacting DuckDuckGo chat AI.*\n"
                 ""
                 (ddg-ai-shell-exec
-                 (format "'%s'" question)))))
+                 (format "%s'%s'" (if no-cache "--no-cache " "") question)))))
       (beginning-of-buffer)
       (while (search-forward "#+begin_src" nil t)
         (let ((p (point)))
@@ -150,5 +150,57 @@
        (concat question (when details (concat "\n" details)))))))
 
 
+;; DDG AI "as a service" in Emacs
+
+
+(defun ddg-ai-one-question (title prompt request)
+  (let ((text (if (use-region-p)
+                  (buffer-substring (region-beginning)
+                                    (region-end))
+                (if (stringp prompt)
+                    prompt
+                  (funcall prompt)))))
+    (message "DDG AI is thinking...")
+    (let ((answer (ddg-ai (format "%s %s" request text) t)))
+      (cl-case (car current-prefix-arg)
+        (4
+         (when (use-region-p)
+           (goto-char (region-end)))
+         (insert (concat "\n\n" answer)))
+        (16 (when (use-region-p)
+              (delete-active-region))
+            (insert answer))
+        (t (message "%s\n%s"
+                    (propertize (format "%s ==>" title)
+                                'face 'font-lock-constant-face)
+                    answer))))))
+
+
+(defun ddg-ai-explain ()
+  (interactive)
+  (ddg-ai-one-question
+   "Explanation"
+   (lambda () (read-string "DDG AI, explain this: "))
+   "Explain this: "))
+
+
+(defun ddg-ai-translate ()
+  (interactive)
+  (let* ((symbol (symbol-at-point))
+         (text (cond ((use-region-p)
+                      (buffer-substring (region-beginning)
+                                        (region-end)))
+                     (symbol (symbol-name symbol))
+                     (t (read-string "Translate: "))))
+         (languages (if (string-match "[a-zA-Z]" text)
+                        "english to russian" "russian to english")))
+    (ddg-ai-one-question
+     "Translation"
+     text
+     (format "Translate this %s (no explanation, give translation only): " languages))))
+
+
 (defun ddg-ai-chat-set-keybindings ()
-  (define-key search-map "a" 'ddg-ai-chat))
+  (define-key search-map "a" 'ddg-ai-chat)
+  (define-key search-map "t" 'ddg-ai-translate)
+  (define-key global-map (kbd "C-c e") 'ddg-ai-explain))
