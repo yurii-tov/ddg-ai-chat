@@ -45,7 +45,7 @@
         (let ((p (point)))
           (re-search-forward "^\s*```" nil t)
           (replace-regexp "^\s*```" "#+end_example" nil p (point) t)))
-      (buffer-substring 1 (point-max)))))
+      (string-trim (buffer-substring 1 (point-max))))))
 
 
 ;; The chat
@@ -180,18 +180,16 @@
   (interactive)
   (ddg-ai-one-question
    "Explanation"
-   (lambda () (read-string "DDG AI, explain this: "))
+   (lambda () (read-string "DDG AI, explain this: " (word-at-point)))
    "Explain this: "))
 
 
 (defun ddg-ai-translate ()
   (interactive)
-  (let* ((symbol (symbol-at-point))
-         (text (cond ((use-region-p)
-                      (buffer-substring (region-beginning)
-                                        (region-end)))
-                     (symbol (symbol-name symbol))
-                     (t (read-string "Translate: "))))
+  (let* ((text (if (use-region-p)
+                   (buffer-substring (region-beginning)
+                                     (region-end))
+                 (read-string "Translate: " (word-at-point))))
          (languages (if (string-match "[a-zA-Z]" text)
                         "english to russian" "russian to english")))
     (ddg-ai-one-question
@@ -203,4 +201,4 @@
 (defun ddg-ai-chat-set-keybindings ()
   (define-key search-map "a" 'ddg-ai-chat)
   (define-key search-map "t" 'ddg-ai-translate)
-  (define-key global-map (kbd "C-c e") 'ddg-ai-explain))
+  (define-key search-map "e" 'ddg-ai-explain))
