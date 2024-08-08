@@ -22,7 +22,7 @@
   (message "Cache has been deleted"))
 
 
-(defun ddg-ai (question &optional no-cache)
+(defun ddg-ai (question &optional no-cache model)
   "Ask DDG AI about something, get an answer (in org-mode format)"
   (let* ((question (replace-regexp-in-string "'" "" question)))
     (with-temp-buffer
@@ -33,7 +33,10 @@
                 ".*Contacting DuckDuckGo chat AI.*\n"
                 ""
                 (ddg-ai-shell-exec
-                 (format "%s'%s'" (if no-cache "--no-cache " "") question)))))
+                 (format "%s%s'%s'"
+                         (if no-cache "--no-cache " "")
+                         (if model (format "--model %s " model) "")
+                         question)))))
       (beginning-of-buffer)
       (while (search-forward "#+begin_src" nil t)
         (let ((p (point)))
@@ -153,7 +156,7 @@
 ;; DDG AI "as a service" in Emacs
 
 
-(defun ddg-ai-one-question (title prompt request)
+(defun ddg-ai-one-question (title prompt request &optional model)
   (let ((text (if (use-region-p)
                   (buffer-substring (region-beginning)
                                     (region-end))
@@ -161,7 +164,7 @@
                     prompt
                   (funcall prompt)))))
     (message "DDG AI is thinking...")
-    (let ((answer (ddg-ai (format "%s %s" request text) t)))
+    (let ((answer (ddg-ai (format "%s %s" request text) t model)))
       (cl-case (car current-prefix-arg)
         (4
          (when (use-region-p)
@@ -195,7 +198,8 @@
     (ddg-ai-one-question
      "Translation"
      text
-     (format "Translate this %s (no explanation, give translation only): " languages))))
+     (format "Translate this %s (no explanation, give translation only): " languages)
+     "Claude")))
 
 
 (defun ddg-ai-chat-set-keybindings ()
