@@ -6,18 +6,18 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Model {
     Claude,
-    GPT3,
+    GPT4,
     Llama,
     Mixtral,
 }
 
-pub const HINT_AVAILABLE: &str = "Claude, GPT3, Llama, Mixtral";
+pub const HINT_AVAILABLE: &str = "Claude, GPT4, Llama, Mixtral";
 
 impl Display for Model {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Claude => write!(f, "claude-3-haiku-20240307"),
-            Self::GPT3 => write!(f, "gpt-3.5-turbo-0125"),
+            Self::GPT4 => write!(f, "gpt-4o-mini"),
             Self::Llama => write!(f, "meta-llama/Llama-3-70b-chat-hf"),
             Self::Mixtral => write!(f, "mistralai/Mixtral-8x7B-Instruct-v0.1"),
         }
@@ -30,7 +30,7 @@ impl FromStr for Model {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "Claude" => Ok(Model::Claude),
-            "GPT3" => Ok(Model::GPT3),
+            "GPT4" => Ok(Model::GPT4),
             "Llama" => Ok(Model::Llama),
             "Mixtral" => Ok(Model::Mixtral),
             _ => Err(()),
@@ -47,7 +47,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            model: Model::GPT3,
+            model: Model::GPT4,
             no_cache: false
         }
     }
