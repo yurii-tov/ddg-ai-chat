@@ -129,31 +129,51 @@
   (setup-ddg-ai-buffer-content))
 
 
-(defun ddg-ai-chat (question)
+(defun ddg-ai-chat (question &optional details)
   (interactive (list (read-string "Ask DDG AI: " nil 'ddg-ai-query-history)))
-  (let* ((ddg-ai-chat-buffer (ddg-ai-chat-buffer-name))
-         (freshp (not (get-buffer ddg-ai-chat-buffer)))
-         (b (get-buffer-create ddg-ai-chat-buffer))
-         (details (when (use-region-p)
-                    (buffer-substring (region-beginning)
-                                      (region-end)))))
-    (unless (member b (mapcar #'window-buffer (window-list)))
-      (switch-to-buffer b))
-    (with-current-buffer b
-      (when freshp
-        (setup-ddg-ai-buffer))
-      (end-of-buffer)
-      (unless (looking-back "* ")
-        (insert "\n* "))
-      (insert (concat question
-                      (when details
-                        (format "\n#+begin_example\n%s\n#+end_example\n"
-                                details))))
-      (ddg-ai-org-insert-answer
-       (concat question (when details (concat "\n" details)))))))
+  (let* ((details (or details
+                      (when (use-region-p)
+                        (buffer-substring (region-beginning)
+                                          (region-end)))))
+         (details (when details
+                    (if current-prefix-arg
+                        (concat "\n" details)
+                      (format "\n#+begin_example\n%s\n#+end_example\n"
+                              details))))
+         (answer (when current-prefix-arg
+                   (ddg-ai (concat question details) t))))
+    (cl-case (car current-prefix-arg)
+      (4 (when (use-region-p)
+           (goto-char (region-end)))
+         (insert (concat "\n\n" answer)))
+      (16 (when (use-region-p)
+            (delete-active-region))
+          (insert answer))
+      (t (let* ((ddg-ai-chat-buffer (ddg-ai-chat-buffer-name))
+                (freshp (not (get-buffer ddg-ai-chat-buffer)))
+                (b (get-buffer-create ddg-ai-chat-buffer)))
+           (unless (member b (mapcar #'window-buffer (window-list)))
+             (switch-to-buffer b))
+           (with-current-buffer b
+             (when freshp
+               (setup-ddg-ai-buffer))
+             (end-of-buffer)
+             (unless (looking-back "* ")
+               (insert "\n* "))
+             (insert (concat question details))
+             (ddg-ai-org-insert-answer
+              (concat question (when details (concat "\n" details))))))))))
 
 
-;; DDG AI "as a service" in Emacs
+;; "Shortcut" commands
+
+
+(defun ddg-ai-explain ()
+  (interactive)
+  (ddg-ai-chat
+   "Explain this:"
+   (unless (use-region-p)
+     (read-string "DDG AI, explain this: " (word-at-point)))))
 
 
 (defun ddg-ai-one-question (title prompt request &optional model)
@@ -177,14 +197,6 @@
                     (propertize (format "%s ==>" title)
                                 'face 'font-lock-constant-face)
                     answer))))))
-
-
-(defun ddg-ai-explain ()
-  (interactive)
-  (ddg-ai-one-question
-   "Explanation"
-   (lambda () (read-string "DDG AI, explain this: " (word-at-point)))
-   "Explain this: "))
 
 
 (defun ddg-ai-translate ()
