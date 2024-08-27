@@ -8,7 +8,7 @@
 (defun ddg-ai-shell-exec (command)
   (let ((default-directory "~"))
     (shell-command-to-string
-     (format "%s %s" ddg-ai-executable command))))
+     (format "%s --base64 %s" ddg-ai-executable command))))
 
 
 (defun ddg-ai-model ()
@@ -36,7 +36,7 @@
                  (format "%s%s'%s'"
                          (if no-cache "--no-cache " "")
                          (if model (format "--model %s " model) "")
-                         question)))))
+                         (base64-encode-string question t))))))
       (beginning-of-buffer)
       (while (search-forward "#+begin_src" nil t)
         (let ((p (point)))
