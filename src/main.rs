@@ -1,8 +1,8 @@
 use std::process::exit;
 
-use base64;
-use clap::Parser;
 use reqwest::Client;
+
+use clap::Parser;
 
 use crate::api::{get_res, simulate_browser_reqs};
 use crate::{cache::Cache, config::Config, config::HINT_AVAILABLE};
@@ -36,8 +36,6 @@ struct Args {
     pub list_models: bool,
     #[arg(long, required = false, help = "Don't use cache")]
     pub no_cache: bool,
-    #[arg(long, required = false, help = "Treat input as base64-encoded")]
-    pub base64: bool,
     #[arg()]
     pub query: Vec<String>,
 }
@@ -47,13 +45,7 @@ async fn main() {
     femme::start();
 
     let args = Args::parse();
-
-    let query = if args.base64 {
-        let bytes = base64::decode(args.query.join("")).unwrap();
-        String::from_utf8(bytes).unwrap()
-    } else {
-        args.query.join(" ")
-    };
+    let query = args.query.join(" ");
 
     let mut cache = Cache::load().unwrap();
     let mut config = Config::load().unwrap();
