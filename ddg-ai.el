@@ -165,38 +165,12 @@
               (concat question (when details (concat "\n" details))))))))))
 
 
-;; "Shortcut" commands
-
-
 (defun ddg-ai-explain ()
   (interactive)
   (ddg-ai-chat
    "Explain this:"
    (unless (use-region-p)
      (read-string "DDG AI, explain this: " (word-at-point)))))
-
-
-(defun ddg-ai-one-question (title prompt request &optional model)
-  (let ((text (if (use-region-p)
-                  (buffer-substring (region-beginning)
-                                    (region-end))
-                (if (stringp prompt)
-                    prompt
-                  (funcall prompt)))))
-    (message "DDG AI is thinking...")
-    (let ((answer (ddg-ai (format "%s %s" request text) t model)))
-      (cl-case (car current-prefix-arg)
-        (4
-         (when (use-region-p)
-           (goto-char (region-end)))
-         (insert (concat "\n\n" answer)))
-        (16 (when (use-region-p)
-              (delete-active-region))
-            (insert answer))
-        (t (message "%s\n%s"
-                    (propertize (format "%s ==>" title)
-                                'face 'font-lock-constant-face)
-                    answer))))))
 
 
 (defun ddg-ai-translate ()
@@ -206,12 +180,24 @@
                                      (region-end))
                  (read-string "Translate: " (word-at-point))))
          (languages (if (string-match "[a-zA-Z]" text)
-                        "english to russian" "russian to english")))
-    (ddg-ai-one-question
-     "Translation"
-     text
-     (format "Translate this %s (no explanation, give translation only): " languages)
-     "Claude")))
+                        "english to russian" "russian to english"))
+         (request (format "Translate this %s (no explanation, give translation only):\n%s"
+                          languages
+                          text)))
+    (message "Translating...")
+    (let ((answer (ddg-ai request t "Claude")))
+      (cl-case (car current-prefix-arg)
+        (4
+         (when (use-region-p)
+           (goto-char (region-end)))
+         (insert (concat "\n\n" answer)))
+        (16 (when (use-region-p)
+              (delete-active-region))
+            (insert answer))
+        (t (message "%s\n%s"
+                    (propertize (format "%s ==>" text)
+                                'face 'font-lock-constant-face)
+                    answer))))))
 
 
 (defun ddg-ai-chat-set-keybindings ()
