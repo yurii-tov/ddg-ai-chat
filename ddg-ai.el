@@ -135,13 +135,13 @@
                       (when (use-region-p)
                         (buffer-substring (region-beginning)
                                           (region-end)))))
-         (details (when details
-                    (if current-prefix-arg
-                        (concat "\n" details)
-                      (format "\n#+begin_example\n%s\n#+end_example\n"
-                              details))))
+         (question-echo (concat question
+                                (when details
+                                  (format "\n#+begin_example\n%s\n#+end_example\n"
+                                          details))))
+         (question (concat question (when details (concat " " details))))
          (answer (when current-prefix-arg
-                   (ddg-ai (concat question details) t))))
+                   (ddg-ai question t))))
     (cl-case (car current-prefix-arg)
       (4 (when (use-region-p)
            (goto-char (region-end)))
@@ -160,9 +160,8 @@
              (end-of-buffer)
              (unless (looking-back "* ")
                (insert "\n* "))
-             (insert (concat question details))
-             (ddg-ai-org-insert-answer
-              (concat question (when details (concat "\n" details))))))))))
+             (insert question-echo)
+             (ddg-ai-org-insert-answer question)))))))
 
 
 (defun ddg-ai-explain ()
