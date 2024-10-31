@@ -185,24 +185,23 @@
                         "english to russian" "russian to english"))
          (request (format "Translate this %s (no explanation, give translation only):\n%s"
                           languages
-                          text)))
-    (or (and (string-match-p "^[^ ]+$" text)
-             ddg-ai-translate-word-fn
-             (funcall ddg-ai-translate-word-fn text))
-        (progn
-          (message "Translating with DDG AI...")
-          (let ((answer (ddg-ai request t "Claude")))
-            (cl-case (car current-prefix-arg)
-              (4
-               (when (use-region-p)
-                 (goto-char (region-end)))
-               (insert (concat "\n\n" answer)))
-              (16 (when (use-region-p)
-                    (delete-active-region))
-                  (insert answer))
-              (t (message "%s =>\n%s"
-                          (propertize text 'face 'font-lock-constant-face)
-                          answer))))))))
+                          text))
+         (answer (or (and (string-match-p "^[^ ]+$" text)
+                          ddg-ai-translate-word-fn
+                          (funcall ddg-ai-translate-word-fn text))
+                     (progn (message "Translating with DDG AI...")
+                            (ddg-ai request t "Claude")))))
+    (cl-case (car current-prefix-arg)
+      (4
+       (when (use-region-p)
+         (goto-char (region-end)))
+       (insert (concat "\n\n" answer)))
+      (16 (when (use-region-p)
+            (delete-active-region))
+          (insert answer))
+      (t (message "%s =>\n%s"
+                  (propertize text 'face 'font-lock-constant-face)
+                  answer)))))
 
 
 (defun ddg-ai-chat-set-keybindings ()
