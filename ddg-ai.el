@@ -172,6 +172,9 @@
      (read-string "DDG AI, explain this: " (word-at-point)))))
 
 
+(setq ddg-ai-translate-word-fn nil)
+
+
 (defun ddg-ai-translate ()
   (interactive)
   (let* ((text (if (use-region-p)
@@ -183,20 +186,23 @@
          (request (format "Translate this %s (no explanation, give translation only):\n%s"
                           languages
                           text)))
-    (message "Translating...")
-    (let ((answer (ddg-ai request t "Claude")))
-      (cl-case (car current-prefix-arg)
-        (4
-         (when (use-region-p)
-           (goto-char (region-end)))
-         (insert (concat "\n\n" answer)))
-        (16 (when (use-region-p)
-              (delete-active-region))
-            (insert answer))
-        (t (message "%s\n%s"
-                    (propertize (format "%s ==>" text)
-                                'face 'font-lock-constant-face)
-                    answer))))))
+    (or (and (string-match-p "^[^ ]+$" text)
+             ddg-ai-translate-word-fn
+             (funcall ddg-ai-translate-word-fn text))
+        (progn
+          (message "Translating...")
+          (let ((answer (ddg-ai request t "Claude")))
+            (cl-case (car current-prefix-arg)
+              (4
+               (when (use-region-p)
+                 (goto-char (region-end)))
+               (insert (concat "\n\n" answer)))
+              (16 (when (use-region-p)
+                    (delete-active-region))
+                  (insert answer))
+              (t (message "%s =>\n%s"
+                          (propertize text 'face 'font-lock-constant-face)
+                          answer))))))))
 
 
 (defun ddg-ai-chat-set-keybindings ()
