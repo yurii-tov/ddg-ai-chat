@@ -190,7 +190,7 @@
              ddg-ai-translate-word-fn
              (funcall ddg-ai-translate-word-fn text))
         (progn
-          (message "Translating...")
+          (message "Translating with DDG AI...")
           (let ((answer (ddg-ai request t "Claude")))
             (cl-case (car current-prefix-arg)
               (4
