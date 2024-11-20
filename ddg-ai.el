@@ -37,12 +37,26 @@
                          (if no-cache "--no-cache " "")
                          (if model (format "--model %s " model) "")
                          question)))))
+      ;; Convert Markdown headers to org-mode headers
+      (let (lengths offset)
+        (beginning-of-buffer)
+        (while (re-search-forward "^\s*#+ " nil t)
+          (let ((l (length (string-trim
+                            (buffer-substring (line-beginning-position) (point))))))
+            (cl-pushnew l lengths)
+            (setq offset (- 2 (apply #'min lengths)))))
+        (dolist (i (sort lengths #'>))
+          (replace-regexp (concat "^\s*" (make-string i ?#))
+                          (make-string (+ i offset) ?*)
+                          nil 1 (point-max))))
+      ;; Convert Markdown code blocks to org-mode
       (beginning-of-buffer)
       (while (search-forward "#+begin_src" nil t)
         (let ((p (point)))
           (re-search-forward "^\s*```" nil t)
           (replace-regexp "^\s*```" "#+end_src" nil p (point) t)))
       (beginning-of-buffer)
+      ;; Convert Markdown example blocks to org-mode
       (while (re-search-forward "^\s*```" nil t)
         (replace-regexp "^\s*```" "#+begin_example" nil nil nil t)
         (let ((p (point)))
