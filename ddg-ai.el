@@ -107,17 +107,18 @@
     (if question
         (progn
           (add-to-history 'ddg-ai-query-history (car (string-split question "\n")))
-          (insert "# Generating answer...")
-          (sit-for 0.05)
-          (let ((a (ddg-ai question)))
-            (kill-whole-line)
-            (insert a))
+          (save-excursion
+            (insert "# Generating answer...")
+            (sit-for 0.05)
+            (let ((a (ddg-ai question)))
+              (kill-whole-line)
+              (insert a)))
           (untabify 1 (point-max))
           (indent-region 1 (point-max))
           (whitespace-cleanup)
-          (call-interactively 'org-next-visible-heading)
-          (org-return)
-          (call-interactively 'org-previous-visible-heading))
+          (org-previous-visible-heading 1)
+          (org-fold-hide-subtree)
+          (org-cycle))
       (org-return))))
 
 
