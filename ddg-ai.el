@@ -55,8 +55,10 @@
         (let ((p (point)))
           (re-search-forward "^\s*```" nil t)
           (replace-regexp "^\s*```" "#+end_src" nil p (point) t)))
-      (beginning-of-buffer)
+      ;; Convert *javascript* block labels to *js*
+      (replace-string "#+begin_src javascript" "#+begin_src js" nil (point-min) (point-max))
       ;; Convert Markdown example blocks to org-mode
+      (beginning-of-buffer)
       (while (re-search-forward "^\s*```" nil t)
         (replace-regexp "^\s*```" "#+begin_example" nil nil nil t)
         (let ((p (point)))
