@@ -75,7 +75,10 @@
 
 
 (defun setup-ddg-ai-buffer-content ()
-  (insert "#+TITLE: DuckDuckGo AI Chat 🦆🤖\n\n* "))
+  (insert "=====================\n")
+  (insert "DuckDuckGo AI Chat 🦆\n")
+  (highlight-regexp "DuckDuckGo AI Chat 🦆" 'org-document-title)
+  (insert "=====================\n\n"))
 
 
 (defun setup-ddg-ai-buffer ()
