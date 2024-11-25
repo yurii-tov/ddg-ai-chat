@@ -56,7 +56,7 @@
           (re-search-forward "^\s*```" nil t)
           (replace-regexp "^\s*```" "#+end_src" nil p (point) t)))
       ;; Convert *javascript* block labels to *js*
-      (replace-string "#+begin_src javascript" "#+begin_src js" nil (point-min) (point-max))
+      (replace-string "#+begin_src javascript" "#+begin_src js :results output" nil (point-min) (point-max))
       ;; Convert Markdown example blocks to org-mode
       (beginning-of-buffer)
       (while (re-search-forward "^\s*```" nil t)
