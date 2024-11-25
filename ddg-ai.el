@@ -121,6 +121,7 @@
           (untabify 1 (point-max))
           (indent-region 1 (point-max))
           (whitespace-cleanup)
+          (org-fill-paragraph)
           (org-previous-visible-heading 1)
           (org-fold-hide-subtree)
           (org-cycle))
