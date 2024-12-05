@@ -74,16 +74,6 @@ fn get_headers() -> HeaderMap {
     map
 }
 
-pub async fn simulate_browser_reqs(cli: &Client) -> Result<(), Box<dyn Error>> {
-    let req = cli
-        .get("https://duckduckgo.com/country.json")
-        .headers(get_headers())
-        .header("X-Requested-With", "XMLHttpRequest")
-        .build()?;
-    cli.execute(req).await?;
-    Ok(())
-}
-
 pub async fn get_vqd(cli: &Client) -> Result<String, Box<dyn Error>> {
     let mut headers = get_headers();
     headers.insert("Cache-Control", HeaderValue::from_static("no-store"));

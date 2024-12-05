@@ -4,7 +4,7 @@ use reqwest::Client;
 
 use clap::Parser;
 
-use crate::api::{get_res, simulate_browser_reqs};
+use crate::api::get_res;
 use crate::{cache::Cache, config::Config, config::HINT_AVAILABLE};
 
 mod api;
@@ -105,7 +105,5 @@ async fn main() {
     println!("{GREEN}Contacting DuckDuckGo chat AI...{RESET}");
 
     let cli = Client::new();
-    simulate_browser_reqs(&cli).await.unwrap();
-
     get_res(&cli, query, &mut cache, &config).await;
 }
