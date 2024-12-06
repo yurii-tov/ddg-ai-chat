@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 use crate::{cache::Cache, config::Config};
 use crate::{RED, RESET, WARN};
 
+const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessagePayload {
     pub role: String,
@@ -56,12 +58,7 @@ fn get_headers() -> HeaderMap {
         "Referer",
         HeaderValue::from_static("https://duckduckgo.com/"),
     );
-    map.insert(
-        "User-Agent",
-        HeaderValue::from_static(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        ),
-    );
+    map.insert("User-Agent", HeaderValue::from_static(USER_AGENT));
     map.insert("DNT", HeaderValue::from_static("1"));
     map.insert("Sec-GPC", HeaderValue::from_static("1"));
     map.insert("Connection", HeaderValue::from_static("keep-alive"));
@@ -125,10 +122,7 @@ pub async fn get_res<'a>(cli: &Client, query: String, cache: &'a mut Cache, conf
     let req = cli
         .post("https://duckduckgo.com/duckchat/v1/chat")
         .header("Content-Type", "application/json")
-        .header(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        )
+        .header("User-Agent", USER_AGENT)
         .header("x-vqd-4", vqd.clone())
         .body(payload)
         .build()
