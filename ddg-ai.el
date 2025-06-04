@@ -101,14 +101,15 @@
 (defun ddg-ai-org-insert-answer (&optional question)
   (interactive)
   (let ((question (or question
-                      (save-excursion
-                        (goto-char (line-beginning-position))
-                        (and (looking-at-p "\\*+ ")
-                             (forward-word)
-                             (backward-word)
-                             (buffer-substring
-                              (point)
-                              (line-end-position)))))))
+                      (and (eolp)
+                           (save-excursion
+                             (goto-char (line-beginning-position))
+                             (and (looking-at-p "\\*+ ")
+                                  (forward-word)
+                                  (backward-word)
+                                  (buffer-substring
+                                   (point)
+                                   (line-end-position))))))))
     (call-interactively 'org-return)
     (if question
         (progn
