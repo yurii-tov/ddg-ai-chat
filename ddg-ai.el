@@ -220,5 +220,5 @@
 
 
 (defun ddg-ai-chat-set-keybindings ()
-  (define-key search-map "a" 'ddg-ai-chat)
+  (define-key search-map "l" 'ddg-ai-chat)
   (define-key search-map "t" 'ddg-ai-translate))
