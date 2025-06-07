@@ -187,14 +187,6 @@
              (ddg-ai-org-insert-answer question)))))))
 
 
-(defun ddg-ai-explain ()
-  (interactive)
-  (ddg-ai-chat
-   "Explain this:"
-   (unless (use-region-p)
-     (read-string "DDG AI, explain this: " (word-at-point)))))
-
-
 (setq ddg-ai-translate-word-fn nil)
 
 
@@ -229,5 +221,4 @@
 
 (defun ddg-ai-chat-set-keybindings ()
   (define-key search-map "a" 'ddg-ai-chat)
-  (define-key search-map "t" 'ddg-ai-translate)
-  (define-key search-map "e" 'ddg-ai-explain))
+  (define-key search-map "t" 'ddg-ai-translate))
